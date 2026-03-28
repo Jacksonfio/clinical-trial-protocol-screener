@@ -1,3 +1,11 @@
+---
+title: Clinical Trial Protocol Screener
+emoji: 🏃
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
 # Clinical Trial Protocol Screener
 
 A real-world OpenEnv environment where an agent screens candidate patients for clinical trials.
