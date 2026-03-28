@@ -2,7 +2,7 @@
 title: Clinical Trial Protocol Screener
 emoji: 🧬
 colorFrom: blue
-colorTo: teal
+colorTo: green
 sdk: docker
 tags: ["openenv", "medical-ai", "screening-automation", "agent-benchmarking"]
 pinned: true
