@@ -1,61 +1,123 @@
 ---
 title: Clinical Trial Protocol Screener
-emoji: 🏃
+emoji: 🧬
 colorFrom: blue
-colorTo: green
+colorTo: teal
 sdk: docker
-tags: ["openenv", "medical", "agent-benchmarking"]
-pinned: false
+tags: ["openenv", "medical-ai", "screening-automation", "agent-benchmarking"]
+pinned: true
 ---
 
 # 🧬 Clinical Trial Protocol Screener (OpenEnv)
 
-A high-fidelity **OpenEnv** environment simulating the real-world task of clinical trial patient recruitment. Agents must act as clinical research coordinators, analyzing complex medical protocols against patient health data to determine eligibility.
+[![OpenEnv Spec v0.1.0](https://img.shields.io/badge/OpenEnv-v0.1.0-blue)](https://github.com/OpenEnv/spec)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🚀 Motivation
+A high-fidelity **OpenEnv** environment simulating the professional cognitive task of matching patients to clinical trials. Agents act as **Clinical Research Coordinators (CRCs)**, analyzing multi-dimensional medical data against strict Inclusion and Exclusion (I/E) criteria.
 
-Clinical trial enrollment is a multi-billion dollar bottleneck in drug development. Mis-screening patients leads to safety risks and failed studies. This environment models the precise cognitive task humans perform: matching unstructured and structured medical criteria (Inclusion/Exclusion) against a patient's multi-dimensional health profile (labs, conditions, medications).
+## 🚀 The Real-World Challenge: Screening
 
-It provides a **meaningful reward signal** (not just binary success) by rewarding partial reasoning and penalizing safety-critical mistakes (like enrolling a patient with a banned medication).
+Clinical trial enrollment is the single greatest bottleneck in modern drug discovery. Manual patient screening is slow, error-prone, and consumes thousands of clinician hours. This environment provides a **benchmarking platform** for agents that can automate this high-stakes medical reasoning task.
 
-## 🎮 The Environment
+### 🧠 The Cognitive Task
+1.  **Protocol Inference**: Understanding the logical constraints (Age, Labs, Medications) of a trial.
+2.  **Patient Matching**: Analyzing a patient's unstructured conditions and structured lab values.
+3.  **Safety Logic**: Identifying critical "red flags" (Exclusion criteria) that outweigh potential matches.
 
-### Action Space
-The agent receives a patient and a protocol and must take one of three actions:
-- `approve`: The patient satisfies ALL inclusion criteria and NONE of the exclusion criteria.
-- `reject`: The patient violates a protocol rule (e.g., has a banned condition or lab outside range).
-- `request_more_info`: The patient has a potential match, but a critical lab value required by the protocol is missing from their record.
+---
 
-### Observation Space
-The agent receives an `Observation` object containing:
-- **Protocol**: Metadata, Inclusion rules, Exclusion rules, and Required Laboratory ranges.
-- **Patient**: Age, Sex, Medical Conditions, Current Medications, and Lab Results.
-- **Progress**: Remaining patients in the current screening batch.
+## 🏗️ Technical Architecture
 
-## 🏆 Tasks & Difficulty
+The environment is built using **FastAPI** and **Pydantic**, adhering strictly to the OpenEnv specification for remote agent interaction.
 
-The environment includes three primary tasks of increasing complexity:
+```mermaid
+graph TD
+    A[Agent / inference.py] -->|Action: approve/reject| B[FastAPI Server]
+    B -->|reset/step| C[ClinicalTrialEnvironment]
+    C -->|Observation| D[Protocol Parser]
+    C -->|Observation| E[Patient Data Store]
+    D & E -->|Comparison| F[Reward Engine]
+    F -->|Normalized Score| A
+```
 
-1. **Easy (Hypertension Trial)**: Focuses on basic boolean logic (1-2 conditions/medications).
-2. **Medium (Heart Failure Trial)**: Introduces comorbidities, age restrictions, and simple lab range checks.
-3. **Hard (Oncology Immunotherapy)**: Requires complex multi-lab reasoning (AST/ALT/Neutrophils) and interaction between systemic medications and oncology protocols.
+---
 
-## 📊 Baseline Results
+## 🎮 Action & Observation Spaces
 
-| Task | Difficulty | Performance (0.0-1.0) |
+### **Action Space (Typed Model: `Action`)**
+The agent must provide a definitive decision for every patient:
+- `approve`: All **Inclusion** rules are met; Zero **Exclusion** rules are violated.
+- `reject`: One or more **Exclusion** rules found, or an **Inclusion** rule is missing.
+- `request_more_info`: A critical dependency (e.g., a required lab) is missing from the record.
+
+### **Observation Space (Typed Model: `Observation`)**
+Each episode step provides the agent with a rich data context:
+| Field | Type | Description |
 | :--- | :--- | :--- |
-| Hypertension Screening | Easy | 1.000 |
-| Heart Failure Screening | Medium | 0.850 |
-| Oncology Immunotherapy | Hard | 0.920 |
+| `protocol_name` | `str` | Clinical trial name (e.g., "Oncology Immunotherapy") |
+| `patient.id` | `str` | Unique medical record identifier |
+| `patient.age` | `int` | Age (Critical for pediatric/geriatric trials) |
+| `patient.labs` | `Dict[str, float]` | Real laboratory values (AST, ALT, Creatinine, etc.) |
+| `patient.conditions`| `List[str]` | ICD-10 styled medical conditions |
+| `patient.meds` | `List[str]` | Current pharmacology (checking for contraindications) |
 
-*Baseline generated using `gpt-4o` via `inference.py`.*
+---
 
-## 🛠️ Setup & Usage
+## 🏆 Task Complexity Matrix
 
-### Local Development
+| Task ID | Domain | Complexity | Decision Depth |
+| :--- | :--- | :--- | :--- |
+| **Easy** | Cardiology (Hypertension) | Low | 1-2 boolean checks (e.g., Condition = 'Hypertension'). |
+| **Medium** | Renal/Cardiac (Heart Failure) | Moderate | 7+ variables including specific Age & Lab value bounds. |
+| **Hard** | Oncology (Immunotherapy) | High | 15+ variables, lab-to-medication interactions, and multi-organ lab checks. |
+
+---
+
+## 📈 Reward Shaping & Scoring
+
+The environment uses a **meaningful reward signal** to guide agent learning. Unlike binary environments, we reward partial reasoning:
+
+### **Reward Calculation Table**
+| Outcome | Base Reward | Justification |
+| :--- | :---: | :--- |
+| **Correct Match** | `1.0` | Agent correctly identified eligibility based on all rules. |
+| **Partial (Metadata)** | `+0.25` | Reward for identifying a correctly signed consent form. |
+| **Partial (Safety)** | `+0.25` | Reward for identifying a critical Exclusion (e.g., Diabetes). |
+| **"Request info"** | `0.2` | Penalized compared to a match, but better than a blind 'approve' for safety. |
+| **Incorrect Reject**| `0.0` | False negative (lost enrollment). |
+| **Incorrect Approve**| `-0.5` | **Safety Violation**: Enrolled a dangerous mismatch (Strong Penalty). |
+
+---
+
+## 🛠️ Developer Setup
+
+### **1. Environment Deployment**
+The environment is containerized via Docker and served through Uvicorn.
 ```bash
-# Install dependencies
+# Local Setup
 pip install -r requirements.txt
-
-# Start the server
 uvicorn server:app --host 0.0.0.0 --port 7860
+# Local Setup
+pip install -r requirements.txt
+uvicorn server:app --host 0.0.0.0 --port 7860
+```
+
+### **2. Running Baseline Inference**
+This evaluates the environment using a state-of-the-art LLM.
+```bash
+export OPENAI_API_KEY="your-key"
+export MODEL_NAME="gpt-4o"
+export API_BASE_URL="https://api.openai.com/v1"
+python inference.py
+```
+
+### **3. Remote Protocol (FastAPI)**
+The environment exposes the standard OpenEnv endpoints:
+- `POST /reset`: Initialize a task (Easy/Medium/Hard).
+- `POST /step`: Submit a decision for a patient.
+- `GET /grader`: Retrieve the final deterministic accuracy score (0.0 - 1.0).
+
+---
+
+## 📜 Ethical Considerations
+*This project is a simulation for AI benchmarking only. It should not be used for actual clinical diagnosis or real patient enrollment without human-in-the-loop validation and HIPAA-compliant data handling architectures.*
