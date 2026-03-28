@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from typing import Optional
 from env.environment import ClinicalTrialEnvironment
 from env.models import Action, Observation, Reward
@@ -9,6 +10,10 @@ from baseline.inference import run_baseline
 app = FastAPI(title='Clinical Trial Screener OpenEnv')
 
 env = ClinicalTrialEnvironment()
+
+@app.get('/')
+def root():
+    return RedirectResponse(url='/docs')
 
 @app.get('/tasks')
 def list_tasks():
