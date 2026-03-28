@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Optional
 from env.environment import ClinicalTrialEnvironment
 from env.models import Action, Observation, Reward
@@ -8,12 +9,13 @@ from graders.reward import grade_episode
 from baseline.inference import run_baseline
 
 app = FastAPI(title='Clinical Trial Screener OpenEnv')
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 env = ClinicalTrialEnvironment()
 
 @app.get('/')
 def root():
-    return RedirectResponse(url='/docs')
+    return FileResponse('static/index.html')
 
 @app.get('/tasks')
 def list_tasks():
