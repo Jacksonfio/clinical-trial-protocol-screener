@@ -6,7 +6,7 @@ from tasks.definitions import TASKS
 from graders.reward import grade_episode
 from baseline.inference import run_baseline
 
-app = FastAPI(title='Clinical Trial Screener OpenEnv')
+app = FastAPI(title='Clinical Trial Screener (Old API Docs)')
 
 env = ClinicalTrialEnvironment()
 
