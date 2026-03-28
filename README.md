@@ -59,25 +59,3 @@ pip install -r requirements.txt
 
 # Start the server
 uvicorn server:app --host 0.0.0.0 --port 7860
-```
-
-### Running the Baseline
-The `inference.py` script runs an LLM-based agent against the environment.
-```bash
-export OPENAI_API_KEY="your-key"
-export MODEL_NAME="gpt-4o"
-python inference.py
-```
-
-### Docker Execution
-```bash
-docker build -t clinical-screener .
-docker run -p 7860:7860 clinical-screener
-```
-
-## 📜 Spec Compliance
-This environment fully complies with the **OpenEnv v0.1.0** specification:
-- [x] Pydantic models for Action, Observation, and Reward.
-- [x] Implementation of `reset()`, `step()`, and `state()` endpoints.
-- [x] Programmatic, deterministic grading via `grade_episode`.
-- [x] Containerized deployment for Hugging Face Spaces.
