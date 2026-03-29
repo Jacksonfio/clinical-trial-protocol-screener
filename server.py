@@ -4,7 +4,7 @@ from env.environment import ClinicalTrialEnvironment
 from env.models import Action, Observation, Reward
 from tasks.definitions import TASKS
 from graders.reward import grade_episode
-from baseline.inference import run_baseline
+# from baseline.inference import run_baseline (Removed to avoid startup overhead)
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -107,4 +107,4 @@ def grader():
 
 @app.get('/baseline')
 def baseline():
-    return run_baseline()
+    return {"status": "Baseline script is located at the root of the repository as 'inference.py' and should be run directly."}
