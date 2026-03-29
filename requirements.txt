@@ -1,5 +1,5 @@
 fastapi==0.114.0
 pydantic==2.8.0
-uvicorn>=0.27.0,<1.0
-openai==1.0.0
-python-multipart
+uvicorn>=0.27.0
+openai>=2.7.2
+openenv-core>=0.2.0
