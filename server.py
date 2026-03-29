@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from typing import Optional
 from env.environment import ClinicalTrialEnvironment
 from env.models import Action, Observation, Reward
@@ -9,6 +10,9 @@ from graders.reward import grade_episode
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title='clinical-trial-protocol-screener')
+
+class ResetRequest(BaseModel):
+    task_id: str = "easy"
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,7 +38,8 @@ def metadata():
         "name": "clinical-trial-protocol-screener",
         "description": "A high-fidelity Clinical Trial Screening environment for testing medical decision-making agents.",
         "version": "0.1.0",
-        "framework": "openenv"
+        "framework": "openenv",
+        "task_ids": ["easy", "medium", "hard"]
     }
 
 @app.get('/schema')
@@ -77,8 +82,9 @@ def list_tasks():
     return {k: {'protocol_id': v['protocol'].id, 'name': v['protocol'].name, 'num_patients': len(v['patients'])} for k, v in TASKS.items()}
 
 @app.post('/reset')
-def reset(task_id: Optional[str] = 'easy'):
+def reset(req: Optional[ResetRequest] = None):
     try:
+        task_id = req.task_id if req else 'easy'
         obs = env.reset(task_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -92,7 +98,7 @@ def step(action: Action):
         raise HTTPException(status_code=400, detail=str(e))
     return {
         'observation': obs,
-        'reward': reward,
+        'reward': reward.value,
         'done': done,
         'info': info,
     }

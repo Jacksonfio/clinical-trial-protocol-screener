@@ -1,7 +1,7 @@
 name: clinical-trial-protocol-screener
 version: 0.1.0
 description: A high-fidelity Clinical Trial Screening environment for testing medical decision-making agents.
-entrypoint: server:app
+entrypoint: server.app:main
 framework: openenv
 license: MIT
 metadata:
