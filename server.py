@@ -8,7 +8,7 @@ from baseline.inference import run_baseline
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title='Clinical Trial Screener (Old API Docs)')
+app = FastAPI(title='clinical-trial-protocol-screener')
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,17 +20,9 @@ app.add_middleware(
 
 env = ClinicalTrialEnvironment()
 
-from fastapi.openapi.docs import get_swagger_ui_html
-
-@app.get("/", include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url="https://jacksonfio-clinical-trial-protocol-screener.hf.space/openapi.json",
-        title=app.title + " - API Docs",
-        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
-    )
+@app.get('/')
+def root():
+    return {"status": "ok", "framework": "openenv"}
 
 @app.get('/tasks')
 def list_tasks():
