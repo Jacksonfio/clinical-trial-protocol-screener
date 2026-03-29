@@ -6,7 +6,17 @@ from tasks.definitions import TASKS
 from graders.reward import grade_episode
 from baseline.inference import run_baseline
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title='Clinical Trial Screener (Old API Docs)')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 env = ClinicalTrialEnvironment()
 
