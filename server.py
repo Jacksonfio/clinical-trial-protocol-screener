@@ -1,8 +1,12 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Optional
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, ValidationError
+from typing import Optional, Dict, Any
+import os
+
 from env.environment import ClinicalTrialEnvironment
-from env.models import Action, Observation, Reward
+from env.models import Action, Observation, Reward, Patient
 from tasks.definitions import TASKS
 from graders.reward import grade_episode
 # from baseline.inference import run_baseline (Removed to avoid startup overhead)
@@ -24,9 +28,24 @@ app.add_middleware(
 
 env = ClinicalTrialEnvironment()
 
-@app.get('/')
-def root():
-    return {"status": "ok", "framework": "openenv"}
+# Validation Model
+class ValidationRequest(BaseModel):
+    data: str
+
+@app.post('/validate')
+async def validate_patient(req: ValidationRequest):
+    try:
+        # Simple JSON validation for now
+        import json
+        patient_dict = json.loads(req.data)
+        Patient(**patient_dict)
+        return {"status": "valid", "message": "Patient data is structurally sound."}
+    except json.JSONDecodeError:
+        return {"status": "invalid", "message": "Invalid JSON format."}
+    except ValidationError as e:
+        return {"status": "invalid", "message": f"Schema mismatch: {e.errors()[0]['msg']}"}
+    except Exception as e:
+        return {"status": "invalid", "message": str(e)}
 
 @app.get('/health')
 def health():
@@ -114,3 +133,11 @@ def grader():
 @app.get('/baseline')
 def baseline():
     return {"status": "Baseline script is located at the root of the repository as 'inference.py' and should be run directly."}
+
+# Mount static files and serve index.html at root
+app.mount("/static", StaticFiles(directory="gallery"), name="static")
+
+@app.get("/")
+async def read_index():
+    return FileResponse('gallery/index.html')
+

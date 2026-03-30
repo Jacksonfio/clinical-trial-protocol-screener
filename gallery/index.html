@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screener.OS | Neural Intelligence</title>
+    <!-- Use relative paths so StaticFiles can resolve them if mounted at root, or /static/ if mounted at /static -->
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="obsidian-theme">
+    <div class="neural-bg"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="nav-sidebar">
+            <div class="brand">
+                <div class="brand-icon"></div>
+                <div class="brand-text">SCREENER<span>.OS</span></div>
+            </div>
+            <nav class="menu">
+                <div class="menu-item active" data-view="entry">
+                    <span class="icon">◈</span> Intelligence Hub
+                </div>
+                <div class="menu-item" data-view="monitor">
+                    <span class="icon">◉</span> Live Simulation
+                </div>
+                <div class="menu-item">
+                    <span class="icon">▤</span> Protocols
+                </div>
+            </nav>
+            <div class="system-status">
+                <div class="status-indicator online"></div>
+                <div class="status-label">NEURAL LINK: ACTIVE</div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <header class="workspace-header">
+                <div class="title-area">
+                    <h1>Clinical Protocol Screener <span class="version-tag">v2.0</span></h1>
+                    <p>Powered by OpenEnv Architecture • No-Blue Spectrum Active</p>
+                </div>
+                <div class="header-metrics">
+                    <div class="metric-card">
+                        <span class="m-label">ENVIRONMENT</span>
+                        <span class="m-value emerald" id="env-status">OpenEnv/v1</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">LATENCY</span>
+                        <span class="m-value gold" id="latency">12ms</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid-layout">
+                <!-- Left Panel: Data Intake -->
+                <section class="panel intake-panel">
+                    <div class="panel-header">
+                        <h2><span class="emerald">01</span> Neural Data Intake</h2>
+                        <div class="actions">
+                            <button id="btn-validate" class="btn-primary">VALIDATE DATA</button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="input-container">
+                            <label for="patient-raw">Paste Patient Dossier (JSON)</label>
+                            <textarea id="patient-raw" placeholder='{ "id": "P-882", "age": 45, "sex": "male", ... }'></textarea>
+                            <div id="validation-feedback" class="feedback-msg">Awaiting data input...</div>
+                        </div>
+                        <div class="task-selection">
+                            <label>Deployment Protocol</label>
+                            <div class="task-grid" id="task-list">
+                                <!-- Tasks dynamically loaded -->
+                                <div class="loading-shimmer"></div>
+                            </div>
+                        </div>
+                        <div class="execution-controls">
+                            <button id="btn-run" class="btn-action" disabled>INITIATE SIMULATION</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right Panel: Live Response Monitoring -->
+                <section class="panel monitor-panel">
+                    <div class="panel-header">
+                        <h2><span class="emerald">02</span> Simulation Matrix</h2>
+                        <div class="badge gold">REAL-TIME</div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="monitor-display">
+                            <div class="monitor-stat">
+                                <span class="s-label">CURRENT PATIENT</span>
+                                <span class="s-value" id="curr-patient">---</span>
+                            </div>
+                            <div class="monitor-stat">
+                                <span class="s-label">DECISION</span>
+                                <span class="s-value emerald" id="curr-decision">WAITING</span>
+                            </div>
+                            <div class="monitor-stat">
+                                <span class="s-label">PROGRESS</span>
+                                <span class="s-value" id="curr-progress">0/0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Secondary Dashboard: Running Info -->
+                        <div class="running-info-container">
+                            <div class="info-header">Simulation Log Trace</div>
+                            <div id="log-terminal" class="terminal">
+                                <div class="t-line system">Ready for batch processing.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripting -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
