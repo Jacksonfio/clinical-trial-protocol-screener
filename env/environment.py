@@ -65,6 +65,8 @@ class ClinicalTrialEnvironment:
             base = 1.0
         elif action.decision == 'request_more_info':
             base = 0.2
+        elif action.decision == 'approve' and correct == 'reject':
+            base = -0.5  # Asymmetric penalty for safety violation
         else:
             base = 0.0
 
