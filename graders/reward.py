@@ -19,4 +19,6 @@ def grade_episode(env: ClinicalTrialEnvironment) -> dict:
         elif decision.decision == 'request_more_info':
             total += 0.2
     score = total / len(decisions)
+    # OpenEnv requires score strictly in (0, 1)
+    score = max(0.001, min(0.999, score))
     return {'score': round(score, 4), 'n': len(decisions)}
