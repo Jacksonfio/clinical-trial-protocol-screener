@@ -7,7 +7,7 @@ def grade_episode(env: ClinicalTrialEnvironment) -> dict:
         raise ValueError('Environment not initialized')
     decisions = env.decisions
     if not decisions:
-        return {'score': 0.0, 'details': 'No decisions made'}
+        return {'score': 0.001, 'details': 'No decisions made'}
 
     # Fake final summary: normalized average of reward guesses
     total = 0.0
