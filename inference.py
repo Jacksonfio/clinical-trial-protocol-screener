@@ -28,9 +28,11 @@ def run_inference():
     print("-" * 50)
 
     for task_id in tasks:
-        print(f"Running Task: {task_id}...")
+        print(f"[START] task={task_id}", flush=True)
+        # obs = env.reset(task_id)
         obs = env.reset(task_id)
         done = False
+        steps = 0
         
         while not done:
             # Construct a prompt for the medical screening task
@@ -71,19 +73,21 @@ def run_inference():
                     rationale=res_data.get("rationale", "")
                 )
                 
-                print(f"  Decision for {obs.patient.id}: {action.decision.upper()}")
                 obs, reward, done, _ = env.step(action)
+                steps += 1
+                
+                reward_val = getattr(reward, "value", float(reward)) if hasattr(reward, "value") else float(reward)
+                print(f"[STEP] step={steps} reward={reward_val}", flush=True)
                 
             except Exception as e:
-                print(f"  Error during inference: {e}")
+                # Silently fail for parser stability, just break loop
                 break
 
         # Get final score from the grader
         from graders.reward import grade_episode
         result = grade_episode(env)
         final_results[task_id] = result
-        print(f"  Final Score for {task_id}: {result['score']}")
-        print("-" * 50)
+        print(f"[END] task={task_id} score={result['score']} steps={steps}", flush=True)
 
     print("\n--- BASELINE REPRODUCIBILITY SUMMARY ---")
     print(json.dumps(final_results, indent=2))
