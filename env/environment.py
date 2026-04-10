@@ -48,7 +48,7 @@ class ClinicalTrialEnvironment:
             'protocol_id': self.protocol.id if self.protocol else None,
             'index': self.index,
             'total': len(self.patients),
-            'decisions': [d.dict() for d in self.decisions],
+            'decisions': [d.model_dump() for d in self.decisions],
         }
 
     def _make_observation(self) -> Observation:
@@ -56,19 +56,21 @@ class ClinicalTrialEnvironment:
         return Observation(
             protocol_id=self.protocol.id,
             protocol_name=self.protocol.name,
+            protocol=self.protocol,
             patient=patient,
             remaining=len(self.patients) - self.index
         )
 
     def _score_action(self, patient: Patient, action: Action) -> tuple[float, dict]:
         correct = self._correct_action(patient)
+        safety_violation = action.decision == 'approve' and correct == 'reject'
 
         if action.decision == correct:
             base = 1.0
         elif action.decision == 'request_more_info':
             # Partial credit for expressing uncertainty (better than a wrong decisive action)
             base = 0.2
-        elif action.decision == 'approve' and correct == 'reject':
+        elif safety_violation:
             # SAFETY VIOLATION: Approving a patient who should be rejected
             # Asymmetric hard penalty — closely mirrors real-world medical ethics
             base = -0.5
@@ -76,27 +78,26 @@ class ClinicalTrialEnvironment:
             # Incorrect rejection (false negative) — lost enrollment opportunity
             base = 0.0
 
-        # ── Partial credit bonuses ──────────────────────────────────────────
+        # ── Partial credit bonuses (only on non-safety-violation decisions) ──
         partial = 0.0
-
-        # Reward for correctly flagging a diabetes exclusion (common safety signal)
-        if ('diabetes' in patient.conditions and
-                'diabetes' in self.protocol.exclusion):
-            partial = 0.25
-
-        # Reward for noting consent is signed (administrative diligence signal)
-        if patient.consent_signed:
-            partial += 0.25
+        if not safety_violation:
+            # Reward for correctly flagging a diabetes exclusion (common safety signal)
+            if ('diabetes' in patient.conditions and
+                    'diabetes' in self.protocol.exclusion):
+                partial = 0.25
+            # Reward for noting consent is signed (administrative diligence signal)
+            if patient.consent_signed:
+                partial += 0.25
 
         final_score = min(1.0, base + partial)
-        # Clamp strictly within (0, 1) to satisfy OpenEnv bounds
-        final_score = max(0.001, min(0.999, final_score))
+        # NOTE: Per-step rewards are unclamped (can be negative for safety violations)
+        # Only the episode-level grader score is clamped to (0.001, 0.999)
 
         return final_score, {
             'expected': correct,
             'got': action.decision,
             'partial_bonus': partial,
-            'safety_violation': action.decision == 'approve' and correct == 'reject',
+            'safety_violation': safety_violation,
         }
 
     def _correct_action(self, patient: Patient) -> str:
@@ -136,14 +137,18 @@ class ClinicalTrialEnvironment:
 
         # 5. Implicit lab-based exclusion (EXPERT LEVEL)
         # The exclusion condition name is never given — the agent must infer it from the raw value
-        # e.g. eGFR=22 → implies "severe renal impairment" even without naming it
+        # e.g. eGFR=22 means severe renal impairment (below safe floor of 30) → reject
+        # e.g. ALT=200 means hepatic dysfunction (above safe ceiling of 135) → reject
         for lab, threshold in self.protocol.implicit_exclusion_labs.items():
             if lab in patient.labs:
+                val = patient.labs[lab]
+                # 'max_for_exclusion' = reject if value BELOW this (e.g. eGFR < 30 = impairment)
                 if 'max_for_exclusion' in threshold:
-                    if patient.labs[lab] < threshold['max_for_exclusion']:
+                    if val < threshold['max_for_exclusion']:
                         return 'reject'
+                # 'min_for_exclusion' = reject if value ABOVE this (e.g. ALT > 135 = dysfunction)
                 if 'min_for_exclusion' in threshold:
-                    if patient.labs[lab] > threshold['min_for_exclusion']:
+                    if val > threshold['min_for_exclusion']:
                         return 'reject'
 
         # 6. Banned medications

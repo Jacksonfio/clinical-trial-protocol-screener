@@ -26,6 +26,7 @@ class Protocol(BaseModel):
 class Observation(BaseModel):
     protocol_id: str
     protocol_name: str
+    protocol: Protocol  # Added so external agents know the rules
     patient: Patient
     remaining: int
 

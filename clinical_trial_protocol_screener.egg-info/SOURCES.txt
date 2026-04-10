@@ -17,3 +17,4 @@ graders/reward.py
 server/app.py
 tasks/__init__.py
 tasks/definitions.py
+tests/test_environment.py

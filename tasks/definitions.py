@@ -191,10 +191,10 @@ TASKS = {
             },
             banned_medications=['nusinersen', 'risdiplam'],  # competing SMA therapies
             implicit_exclusion_labs={
-                # eGFR below this means "severe renal impairment" even if not labelled
+                # eGFR below 30 = severe renal impairment → reject
                 'eGFR': {'max_for_exclusion': 30.0},
-                # ALT above this means "hepatic dysfunction" even if not labelled
-                'ALT': {'max_for_exclusion': 135.0},
+                # ALT above 135 (3x ULN of 45) = hepatic dysfunction → reject
+                'ALT': {'min_for_exclusion': 135.0},
             },
         ),
         'patients': [
