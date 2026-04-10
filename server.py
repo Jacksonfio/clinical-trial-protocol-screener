@@ -55,10 +55,10 @@ def health():
 def metadata():
     return {
         "name": "clinical-trial-protocol-screener",
-        "description": "A high-fidelity Clinical Trial Screening environment for testing medical decision-making agents.",
-        "version": "0.1.0",
+        "description": "A high-fidelity Clinical Trial Screening environment for testing medical decision-making agents with implicit reasoning and drug interaction detection.",
+        "version": "0.2.0",
         "framework": "openenv",
-        "task_ids": ["easy", "medium", "hard"]
+        "task_ids": ["easy", "medium", "hard", "expert"]
     }
 
 @app.get('/schema')

@@ -21,11 +21,10 @@ def run_inference():
     )
 
     env = ClinicalTrialEnvironment()
-    tasks = ["easy", "medium", "hard"]
+    tasks = ["easy", "medium", "hard", "expert"]
     final_results = {}
 
-    print(f"Starting Baseline Inference using model: {MODEL_NAME}")
-    print("-" * 50)
+    print(f"Starting Baseline Inference | model={MODEL_NAME}", flush=True)
 
     for task_id in tasks:
         print(f"[START] task={task_id}", flush=True)
@@ -35,30 +34,35 @@ def run_inference():
         steps = 0
         
         while not done:
-            # Construct a prompt for the medical screening task
-            prompt = f"""
-            You are a Clinical Trial Screening Assistant. 
-            Decision Task for Protocol: {obs.protocol_name}
-            
-            PATIENT DATA:
-            - ID: {obs.patient.id}
-            - Age: {obs.patient.age}
-            - Sex: {obs.patient.sex}
-            - Conditions: {', '.join(obs.patient.conditions)}
-            - Medications: {', '.join(obs.patient.medications)}
-            - Lab Results: {json.dumps(obs.patient.labs)}
-            - Consent Signed: {obs.patient.consent_signed}
-            
-            YOUR OBJECTIVE:
-            Decide if this patient should be 'approve' (matches all criteria), 'reject' (fails criteria), 
-            or if you need 'request_more_info' (missing critical labs).
-            
-            Return your decision in the following JSON format:
-            {{
-                "decision": "approve" | "reject" | "request_more_info",
-                "rationale": "Brief explanation of your decision"
-            }}
-            """
+            protocol = env.protocol
+            prompt = f"""You are a senior Clinical Research Coordinator (CRC) screening patients for a clinical trial.
+
+TRIAL: {obs.protocol_name} (ID: {obs.protocol_id})
+INCLUSION CRITERIA: {', '.join(protocol.inclusion)}
+EXCLUSION CRITERIA: {', '.join(protocol.exclusion)}
+REQUIRED LABS (with acceptable ranges): {json.dumps(protocol.required_labs)}
+BANNED MEDICATIONS: {', '.join(protocol.banned_medications)}
+
+PATIENT RECORD:
+- Patient ID: {obs.patient.id}
+- Age: {obs.patient.age} | Sex: {obs.patient.sex}
+- Conditions: {', '.join(obs.patient.conditions) or 'None reported'}
+- Current Medications: {', '.join(obs.patient.medications) or 'None'}
+- Lab Results: {json.dumps(obs.patient.labs) or 'None available'}
+- Informed Consent Signed: {obs.patient.consent_signed}
+
+TASK: Screen this patient against all trial criteria above.
+- Choose 'approve' ONLY if ALL inclusion criteria are met AND NO exclusion criteria or banned medications are present AND all required labs are within range.
+- Choose 'reject' if ANY exclusion criterion is met, OR a banned medication is present, OR a lab value is out of range, OR consent is not signed.
+- Choose 'request_more_info' ONLY if a required lab value is completely missing from the record.
+- IMPORTANT: If a lab value implies a condition (e.g., very low eGFR implies renal impairment), treat that as an exclusion even if not explicitly labeled.
+
+Respond with valid JSON only:
+{{
+    "decision": "approve" | "reject" | "request_more_info",
+    "rationale": "Concise clinical reasoning for your decision"
+}}"""
+
 
             try:
                 response = client.chat.completions.create(

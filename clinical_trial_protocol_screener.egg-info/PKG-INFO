@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: clinical-trial-protocol-screener
+Version: 0.1.0
+Summary: Clinical trial screening environment with easy/medium/hard tasks and deterministic grading.
+Requires-Python: >=3.10
+License-File: LICENSE
+Requires-Dist: fastapi==0.114.0
+Requires-Dist: pydantic==2.8.0
+Requires-Dist: uvicorn<1.0,>=0.27.0
+Requires-Dist: openai>=2.7.2
+Requires-Dist: openenv-core>=0.2.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Dynamic: license-file

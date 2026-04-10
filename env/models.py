@@ -18,6 +18,10 @@ class Protocol(BaseModel):
     exclusion: List[str]
     required_labs: Dict[str, Dict[str, float]]
     banned_medications: List[str]
+    # Dangerous drug-drug interaction pairs: both meds present = auto-reject
+    drug_interactions: List[List[str]] = Field(default_factory=list)
+    # Implicit inference rules: lab-based exclusion without naming the condition
+    implicit_exclusion_labs: Dict[str, Dict[str, float]] = Field(default_factory=dict)
 
 class Observation(BaseModel):
     protocol_id: str
