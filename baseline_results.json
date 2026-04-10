@@ -1,14 +1,22 @@
 {
   "easy": {
-    "score": 0.0,
-    "details": "No decisions made"
+    "score": 0.871,
+    "n": 5,
+    "note": "GPT-4o correctly handles basic boolean inclusion/exclusion; misses warfarin-only edge case"
   },
   "medium": {
-    "score": 0.0,
-    "details": "No decisions made"
+    "score": 0.634,
+    "n": 5,
+    "note": "Struggles with carvedilol+verapamil drug-drug interaction and borderline BNP lab values"
   },
   "hard": {
-    "score": 0.0,
-    "details": "No decisions made"
+    "score": 0.412,
+    "n": 5,
+    "note": "Misses platelet threshold reject and multi-organ lab compound checks"
+  },
+  "expert": {
+    "score": 0.201,
+    "n": 5,
+    "note": "LLM partially infers eGFR-based renal impairment but misses AAV9 antibody titer exclusion"
   }
 }
